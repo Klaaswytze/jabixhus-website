@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="page_title">Aanvraag Vrienden op de Fiets - Jabixhûs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .input { border: 1px solid #d1d5db; padding: 0.5rem 0.75rem; border-radius: 0.375rem; width: 100%; }
+        .modal { display: none; position: fixed; z-index: 50; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); animation: fadeIn 0.3s; align-items: center; justify-content: center; }
+        .modal-content { background-color: #fefefe; margin: 10% auto; padding: 24px; border: 1px solid #888; width: 90%; max-width: 500px; border-radius: 8px; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-md mx-auto relative">
+        <div class="absolute top-0 right-0">
+            <select id="language-selector" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                <option value="nl">Nederlands</option>
+                <option value="en">English</option>
+                <option value="de">Deutsch</option>
+                <option value="fr">Français</option>
+                <option value="es">Español</option>
+                <option value="fy">Frysk</option>
+            </select>
+        </div>
+
+        <header class="mb-8 pb-4 border-b border-gray-200 text-center pt-12">
+            <img src="logo.png" alt="Logo Jabixhûs" class="w-48 mx-auto mb-4">
+            <p class="text-lg text-gray-600" data-translate="subtitle">Aanvraag Vrienden op de Fiets</p>
+        </header>
+
+        <div class="bg-white p-6 rounded-lg shadow-sm border-2 border-[#C58A4A]">
+            <form id="request-form" class="space-y-4">
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700" data-translate="name_label">Volledige naam</label>
+                    <input type="text" id="name" required class="mt-1 input">
+                </div>
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700" data-translate="email_label">E-mailadres (verplicht)</label>
+                    <input type="email" id="email" required class="mt-1 input">
+                </div>
+                 <div>
+                    <label for="phone" class="block text-sm font-medium text-gray-700" data-translate="phone_label">Telefoonnummer (optioneel)</label>
+                    <input type="tel" id="phone" class="mt-1 input">
+                </div>
+                <div>
+                    <label for="persons-request" class="block text-sm font-medium text-gray-700" data-translate="persons_label">Aantal Personen</label>
+                    <input type="number" id="persons-request" value="1" min="1" max="4" required class="mt-1 input">
+                </div>
+                <div>
+                    <label for="date-range-request" class="block text-sm font-medium text-gray-700" data-translate="period_label">Periode (Aankomst t/m Vertrek)</label>
+                    <input type="text" id="date-range-request" required class="mt-1 input" data-translate-placeholder="period_placeholder">
+                </div>
+                <div>
+                    <label for="note-request" class="block text-sm font-medium text-gray-700" data-translate="note_label">Opmerking (optioneel)</label>
+                    <input type="text" id="note-request" class="mt-1 input" data-translate-placeholder="note_placeholder">
+                </div>
+                <button type="submit" class="w-full bg-[#C58A4A] text-white font-semibold py-2 px-4 rounded-md hover:bg-[#b07b41]" data-translate="submit_button">Aanvraag Indienen</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="error-modal" class="modal">
+        <div class="modal-content max-w-sm">
+            <h3 class="text-lg font-semibold text-red-700 mb-4" data-translate="error_title">Foutmelding</h3>
+            <p id="error-message" class="text-gray-700 mb-6"></p>
+            <div class="flex justify-end">
+                <button id="close-error-modal" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Sluiten</button>
+            </div>
+        </div>
+    </div>
+    <div id="info-modal" class="modal">
+        <div class="modal-content max-w-sm">
+            <h3 class="text-lg font-semibold text-blue-700 mb-4" data-translate="info_title">Aanvraag Ontvangen</h3>
+            <p id="info-message" class="text-gray-700 mb-6"></p>
+            <div class="flex justify-end">
+                <button id="close-info-modal" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Ok</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
+    <script src="supabase_config.js"></script>
+    <script src="gast-app.js"></script>
+</body>
+</html>

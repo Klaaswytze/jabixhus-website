@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beheer Reserveringen - Jabixhûs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+        .day-header { font-size: 0.75rem; text-align: center; color: #475569; font-weight: 600; }
+        .calendar-day { min-height: 140px; border: 1px solid #e2e8f0; transition: background-color: 0.2s; position: relative; min-width: 0; overflow: hidden; }
+        .booking-wrapper { position: absolute; top: 1.75rem; left: 0; right: 0; bottom: 0; padding: 0 4px 4px 2px; overflow-y: auto; box-sizing: border-box; }
+        .booking { font-size: 0.8rem; padding: 4px 6px; margin-bottom: 4px; margin-right: 4px; color: white; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; position: relative; cursor: pointer; max-width: 100%; }
+        .booking-airbnb { background-color: #f97316; } .booking-vrienden { background-color: #2563eb; } .booking-blocked { background-color: #475569; } .booking-group { background-color: #10b981; } .booking-request { background-color: #a5b4fc; color: #1e1b4b; border: 1px solid #4338ca; } .booking-note { background-color: #fef08a; border: 1px dashed #ca8a04; color: #713f12; } .booking-event { background-color: #8b5cf6; }
+        .modal { display: none; position: fixed; z-index: 50; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); animation: fadeIn 0.3s; align-items: center; justify-content: center; }
+        .modal-content { background-color: #fefefe; margin: 5% auto; padding: 24px; border: 1px solid #888; width: 90%; max-width: 600px; border-radius: 8px; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .input { border: 1px solid #d1d5db; padding: 0.5rem 0.75rem; border-radius: 0.375rem; width: 100%; }
+        .day-drag-handle { position: absolute; top: 0; left: 0; right: 0; height: 28px; cursor: crosshair; z-index: 5; transition: background-color 0.2s; }
+        .calendar-day:hover .day-drag-handle { background-color: rgba(59, 130, 246, 0.1); }
+        .day-in-selection { background-color: rgba(59, 130, 246, 0.2) !important; border-color: #3b82f6 !important; }
+        #context-menu { display: none; position: fixed; z-index: 100; background-color: white; border: 1px solid #ccc; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 8px; padding: 0.5rem 0; min-width: 220px; }
+        #context-menu a { display: block; padding: 0.5rem 1rem; color: #333; text-decoration: none; font-size: 0.9rem; }
+        #context-menu a:hover { background-color: #f1f5f9; }
+        #context-menu .menu-divider { border-top: 1px solid #e5e7eb; margin: 0.5rem 0; }
+        #context-menu .menu-title { padding: 0.5rem 1rem; font-size: 0.8rem; color: #6b7280; font-weight: 600; }
+        #floorplan-container { display: grid; grid-template-columns: 1.5fr 0.5fr 1.5fr 1.5fr; grid-template-rows: 1fr 1fr 0.5fr 1.5fr 1fr 1fr 2fr auto; gap: 8px; min-height: 500px; grid-template-areas: "kamer-b woonkamer badkamers prive" "kamer-a woonkamer badkamers prive" "kapel gang-top gang-top gang-top" "kamer-c gang-main tuin tuin" "horeca gang-main tuin tuin" "workshop gang-main tuin tuin" "workshop gang-main tuin tuin" "workshop kantoor tuin tuin"; }
+        .floorplan-space { border: 2px solid #e5e7eb; border-radius: 8px; padding: 0.5rem; transition: all 0.2s; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-size: 0.85rem; word-break: break-word; }
+        .floorplan-room { cursor: pointer; } .floorplan-room:hover { border-color: #9ca3af; } .non-bookable { background-color: #f3f4f5; color: #9ca3af; cursor: default; } .room-free { background-color: #f9fafb; color: #4b5563; }
+        #fp-kamer-b { grid-area: kamer-b; } #fp-kamer-a { grid-area: kamer-a; } #fp-gastenverblijf { grid-area: woonkamer; } #fp-badkamers { grid-area: badkamers; padding: 0.5rem; } #fp-prive { grid-area: prive; } #fp-kapel { grid-area: kapel; } #fp-kamer-c { grid-area: kamer-c; } #fp-horecakeuken { grid-area: horeca; } #fp-workshop { grid-area: workshop; } #fp-gang-top { grid-area: gang-top; } #fp-gang-main { grid-area: gang-main; } #fp-kantoor { grid-area: kantoor; } #fp-tuin { grid-area: tuin; }
+        .bath-container { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 4px; width: 100%; height: 100%; }
+        .bath-a { grid-area: 1 / 1 / 2 / 2; } .bath-b { grid-area: 1 / 2 / 2 / 3; } .bath-prive { grid-area: 2 / 1 / 3 / 3; }
+        .bath-sub-item { border: 2px solid #e5e7eb; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 500; padding: 4px; transition: all 0.2s; }
+        .gang-segment { background-color: #f3f4f5; border-color: #e5e7eb; border-style: solid; border-width: 0; display: flex; align-items: center; justify-content: center; }
+        #fp-gang-top { border-top-width: 2px; border-left-width: 2px; border-right-width: 2px; border-radius: 8px 8px 0 0; }
+        #fp-gang-main { border-bottom-width: 2px; border-left-width: 2px; border-right-width: 2px; margin-top: -8px; }
+        .dragging { opacity: 0.5; border: 2px dashed #3b82f6; }
+        .drag-over-valid { border-color: #10b981 !important; background-color: rgba(16, 185, 129, 0.1); }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        <header class="mb-8 pb-4 border-b border-gray-200">
+            <img src="logo.png" alt="Logo Jabixhûs" class="w-48 mx-auto mb-4">
+            <h1 class="text-3xl font-bold text-gray-800 text-center">Beheer Reserveringen</h1>
+        </header>
+        
+        <div class="mb-8">
+            <div class="bg-white p-6 rounded-lg shadow-sm border-2 border-[#C58A4A]">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">Openstaande Aanvragen</h3>
+                <div id="requests-list" class="space-y-3"><p class="text-sm text-gray-500">Geen openstaande aanvragen.</p></div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-sm border-2 border-[#C58A4A]">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-gray-700" id="month-year"></h2>
+                    <div><button id="prev-month-btn" class="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">‹ Vorige</button><button id="next-month-btn" class="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">Volgende ›</button></div>
+                </div>
+                <div>
+                    <div class="calendar-grid mb-2">
+                        <div class="day-header">MA</div><div class="day-header">DI</div><div class="day-header">WO</div><div class="day-header">DO</div><div class="day-header">VR</div><div class="day-header">ZA</div><div class="day-header">ZO</div>
+                    </div>
+                    <div id="calendar-body" class="calendar-grid"></div>
+                </div>
+                <div class="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm"><div class="flex items-center"><span class="w-4 h-4 rounded-full bg-[#f97316] mr-2"></span> Airbnb</div><div class="flex items-center"><span class="w-4 h-4 rounded-full bg-[#2563eb] mr-2"></span> Vrienden</div><div class="flex items-center"><span class="w-4 h-4 rounded-full bg-[#10b981] mr-2"></span> Groep</div><div class="flex items-center"><span class="w-4 h-4 rounded-full bg-[#a5b4fc] border border-indigo-700 mr-2"></span> Aanvraag</div><div class="flex items-center"><span class="w-4 h-4 rounded-full bg-[#475569] mr-2"></span> Geblokkeerd</div><div class="flex items-center"><span class="w-4 h-4 rounded-full bg-[#fef08a] border border-yellow-600 mr-2"></span> Notitie</div><div class="flex items-center"><span class="w-4 h-4 rounded-full bg-[#8b5cf6] mr-2"></span> Evenement</div></div>
+            </div>
+            <div> <div class="bg-white p-6 rounded-lg shadow-sm border-2 border-[#C58A4A]">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold text-gray-700">Bezetting</h2>
+                        <div class="flex items-center gap-2">
+                            <button id="prev-day" class="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">&lt;</button>
+                            <input type="date" id="floorplan-date-picker" class="input w-40">
+                            <button id="next-day" class="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">&gt;</button>
+                        </div>
+                    </div>
+                    <div id="floorplan-container"><div id="fp-kamer-a" class="floorplan-space floorplan-room"></div><div id="fp-kamer-b" class="floorplan-space floorplan-room"></div><div id="fp-kamer-c" class="floorplan-space floorplan-room"></div><div id="fp-kapel" class="floorplan-space floorplan-room"></div><div id="fp-workshop" class="floorplan-space floorplan-room"></div><div id="fp-horecakeuken" class="floorplan-space floorplan-room"></div><div id="fp-tuin" class="floorplan-space floorplan-room"></div><div id="fp-gastenverblijf" class="floorplan-space non-bookable"><div class="font-semibold text-xs whitespace-nowrap">Woonkamer<br>Gasten</div></div><div id="fp-prive" class="floorplan-space non-bookable"><div class="font-semibold">Privé</div></div><div id="fp-gang-top" class="gang-segment non-bookable"><div class="font-semibold text-gray-500">Gang</div></div><div id="fp-gang-main" class="gang-segment non-bookable"><div class="transform -rotate-90 whitespace-nowrap font-semibold text-gray-500">Gang</div></div><div id="fp-kantoor" class="floorplan-space non-bookable"><div class="font-semibold text-xs whitespace-nowrap">Kantoor</div></div><div id="fp-badkamers" class="floorplan-space non-bookable"><div class="bath-container"><div id="bath-a-container" class="bath-sub-item non-bookable">Badk. A</div><div id="bath-b-container" class="bath-sub-item non-bookable">Badk. B</div><div class="bath-sub-item non-bookable bath-prive">Badkamer Privé</div></div></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="day-modal" class="modal"><div class="modal-content max-w-md"><h3 class="text-lg font-semibold mb-4">Details voor <span id="modal-date"></span></h3><div id="modal-bookings-list" class="mb-4"></div><hr class="my-4"><h4 class="text-md font-semibold mb-2">Snelle Notitie Toevoegen</h4><div><label for="note-modal-text" class="block text-sm font-medium text-gray-700">Notitie voor deze dag</label><input type="text" id="note-modal-text" placeholder="Typ hier uw notitie..." class="mt-1 input"></div><div class="mt-4 flex justify-end gap-3"><button type="button" class="modal-close-btn px-4 py-2 bg-gray-200 rounded-md">Annuleren</button><button id="save-note-btn" class="px-4 py-2 bg-yellow-400 text-yellow-900 rounded-md hover:bg-yellow-500">Notitie Opslaan</button></div></div></div>
+    <div id="quick-booking-modal" class="modal"><div class="modal-content"><h3 class="text-lg font-semibold mb-4">Nieuwe Boeking / Blokkade</h3><form id="quick-booking-form" class="space-y-4"><div><label for="quick-name" class="block text-sm font-medium text-gray-700">Naam / Omschrijving</label><input type="text" id="quick-name" required class="mt-1 input"></div><div class="grid grid-cols-2 gap-4"><div><label for="quick-start-date" class="block text-sm font-medium text-gray-700">Aankomstdatum</label><input type="date" id="quick-start-date" required class="mt-1 input" readonly></div><div><label for="quick-end-date" class="block text-sm font-medium text-gray-700">Vertrekdatum</label><input type="date" id="quick-end-date" required class="mt-1 input" readonly></div></div><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-medium text-gray-700">Kamer</label><div id="quick-room-checklist" class="mt-2 space-y-2 border p-2 rounded-md"></div></div><div><label for="quick-bathroom-select" class="block text-sm font-medium text-gray-700">Badkamer</label><select id="quick-bathroom-select" class="mt-1 input"><option value="">N.v.t.</option><option value="A">Badkamer A (Douche)</option><option value="B">Badkamer B (Bad)</option></select></div></div><div class="grid grid-cols-2 gap-4"><div><label for="quick-type" class="block text-sm font-medium text-gray-700">Type</label><select id="quick-type" class="mt-1 input" disabled><option value="vrienden">Vrienden</option><option value="airbnb">Airbnb</option><option value="blocked">Geblokkeerd</option></select></div><div><label for="quick-persons" class="block text-sm font-medium text-gray-700">Personen</label><input type="number" id="quick-persons" min="1" class="mt-1 input"></div></div><div class="mt-6 flex justify-end gap-3"><button type="button" class="modal-close-btn px-4 py-2 bg-gray-200 rounded-md">Annuleren</button><button type="submit" class="px-4 py-2 bg-[#C58A4A] text-white rounded-md hover:bg-[#b07b41]">Opslaan</button></div></form></div></div>
+    <div id="booking-modal" class="modal"><div class="modal-content"><h3 class="text-lg font-semibold mb-4">Boeking Bewerken</h3><form id="edit-booking-form" class="space-y-4"></form></div></div>
+    <div id="group-booking-modal" class="modal"><div class="modal-content"><h3 class="text-lg font-semibold mb-4">Nieuwe Groepsboeking</h3><form id="group-booking-form" class="space-y-4"><div><label for="group-name" class="block text-sm font-medium text-gray-700">Groepsnaam</label><input type="text" id="group-name" required class="mt-1 input"></div><div><label for="date-range-group" class="block text-sm font-medium text-gray-700">Periode</label><input type="text" id="date-range-group" required class="mt-1 input" placeholder="Selecteer een periode..."></div><div><label class="block text-sm font-medium text-gray-700">Selecteer kamers & ruimtes</label><div id="group-rooms-checkboxes" class="mt-2 grid grid-cols-2 gap-2"></div></div><div><label for="group-note" class="block text-sm font-medium text-gray-700">Groepsnotitie (optioneel)</label><input type="text" id="group-note" class="mt-1 input"></div><div class="mt-6 flex justify-end gap-3"><button type="button" class="modal-close-btn px-4 py-2 bg-gray-200 rounded-md">Annuleren</button><button type="submit" class="px-4 py-2 bg-[#10b981] text-white rounded-md hover:bg-emerald-600">Groep Boeken</button></div></form></div></div>
+    <div id="event-booking-modal" class="modal"><div class="modal-content"><h3 class="text-lg font-semibold mb-4">Nieuw Evenement</h3><form id="event-booking-form" class="space-y-4"><div><label for="event-name" class="block text-sm font-medium text-gray-700">Naam Evenement</label><input type="text" id="event-name" required class="mt-1 input"></div><div><label for="date-range-event" class="block text-sm font-medium text-gray-700">Periode</label><input type="text" id="date-range-event" required class="mt-1 input" placeholder="Selecteer een periode..."></div><div><label class="block text-sm font-medium text-gray-700">Selecteer ruimtes</label><div id="event-spaces-checkboxes" class="mt-2 grid grid-cols-2 gap-2"></div></div><div class="mt-6 flex justify-end gap-3"><button type="button" class="modal-close-btn px-4 py-2 bg-gray-200 rounded-md">Annuleren</button><button type="submit" class="px-4 py-2 bg-[#8b5cf6] text-white rounded-md hover:bg-violet-600">Evenement Boeken</button></div></form></div></div>
+    <div id="error-modal" class="modal"><div class="modal-content max-w-sm"><h3 class="text-lg font-semibold text-red-700 mb-4">Foutmelding</h3><p id="error-message" class="text-gray-700 mb-6"></p><div class="flex justify-end"><button type="button" class="modal-close-btn px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Sluiten</button></div></div></div>
+    <div id="delete-choice-modal" class="modal"><div class="modal-content max-w-md"><h3 class="text-lg font-semibold mb-4">Wat wil je verwijderen?</h3><p class="text-gray-600 mb-6">Deze boeking is onderdeel van een groep. Maak een keuze:</p><div class="space-y-3"><button id="delete-single-confirm-btn" class="w-full px-4 py-3 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 text-left">Verwijder alleen <span id="delete-choice-room-name" class="font-bold"></span></button><button id="delete-group-confirm-btn" class="w-full px-4 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 text-left">Verwijder hele groep "<span id="delete-choice-group-name" class="font-bold"></span>"</button></div><div class="mt-6 flex justify-end"><button type="button" class="modal-close-btn px-4 py-2 bg-gray-200 rounded-md">Annuleren</button></div></div></div>
+    <div id="swap-confirm-modal" class="modal"><div class="modal-content max-w-md"><h3 class="text-lg font-semibold mb-4" id="swap-confirm-title">Boekingen Wisselen?</h3><p id="swap-confirm-text" class="text-gray-600 mb-6"></p><div class="flex justify-end gap-3"><button type="button" class="modal-close-btn px-4 py-2 bg-gray-200 rounded-md">Annuleren</button><button id="swap-confirm-btn" class="px-4 py-2 bg-[#C58A4A] text-white rounded-md">Wisselen</button></div></div></div>
+    <div id="move-confirm-modal" class="modal"><div class="modal-content max-w-md"><h3 class="text-lg font-semibold mb-4" id="move-confirm-title">Boeking Verplaatsen?</h3><p id="move-confirm-text" class="text-gray-600 mb-6"></p><div class="flex justify-end gap-3"><button type="button" class="modal-close-btn px-4 py-2 bg-gray-200 rounded-md">Annuleren</button><button id="move-confirm-btn" class="px-4 py-2 bg-[#C58A4A] text-white rounded-md">Verplaatsen</button></div></div></div>
+    
+    <div id="group-review-modal" class="modal">
+        <div class="modal-content max-w-3xl">
+            <h3 id="group-modal-title" class="text-xl font-semibold mb-4 border-b pb-3">Groepsaanvraag Beoordelen</h3>
+            
+            <div class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div>
+                        <label class="font-semibold text-gray-600 block">Contactpersoon</label>
+                        <span id="group-modal-contact" class="text-gray-800"></span>
+                    </div>
+                    <div>
+                        <label class="font-semibold text-gray-600 block">Periode</label>
+                        <span id="group-modal-period" class="text-gray-800"></span>
+                    </div>
+                    <div>
+                        <label class="font-semibold text-gray-600 block">Aantal Personen</label>
+                        <span id="group-modal-persons" class="text-gray-800"></span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="font-semibold text-gray-600 block mb-2">Aangevraagde Ruimtes</label>
+                    <div id="group-modal-rooms-list" class="space-y-2 border rounded-md p-3 bg-gray-50">
+                        <p>Laden...</p>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="group-modal-notes" class="font-semibold text-gray-600 block mb-1">Groepsnotitie / Wensen</label>
+                    <textarea id="group-modal-notes" rows="4" class="input bg-gray-100" readonly></textarea>
+                </div>
+                
+                <div id="group-modal-feedback" class="text-center p-3 rounded-md hidden"></div>
+                
+                <div class="mt-6 flex justify-between items-center">
+                    <button type="button" id="group-reject-all-btn" class="text-sm font-semibold py-2 px-4 rounded-md bg-red-600 text-white hover:bg-red-700">Hele Groep Afwijzen</button>
+                    <div class="flex gap-3">
+                        <button type="button" class="modal-close-btn px-4 py-2 bg-gray-200 rounded-md">Annuleren</button>
+                        <button type="button" id="group-approve-all-btn" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700" disabled>Hele Groep Goedkeuren</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
+    <script src="supabase_config.js"></script>
+    <script src="beheer.js"></script> 
+</body>
+</html>
