@@ -3,98 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welkom bij Stadsklooster Jabixhûs - Leeuwarden</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Jabixhûs - Binnenkort beschikbaar</title>
     <style>
         body { 
+            background-color: #f8fafc; 
             font-family: 'Inter', sans-serif; 
-            background-color: #f8fafc;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            margin: 0; 
+            text-align: center; 
+            color: #334155;
         }
-        .hero-image {
-            /* De achtergrondafbeelding is nu de .png foto van de gang */
-            background-image: url('jabixhus-gang.png');
-            background-size: cover;
-            background-position: center;
-            height: 50vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.6); /* Iets meer schaduw voor leesbaarheid */
+        .container { 
+            max-width: 500px; 
+            padding: 2rem;
+        }
+        img {
+            width: 150px;
+            margin-bottom: 1.5rem;
+        }
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        p {
+            font-size: 1.1rem;
+            color: #64748b;
         }
     </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-50">
-
-    <header class="hero-image">
-        <div class="text-center px-4">
-            <h1 class="text-4xl md:text-5xl font-bold">De warmte van thuis, in een oase van rust</h1>
-            <p class="text-xl mt-2">Ontdek ons unieke stadsklooster in hartje Leeuwarden</p>
-        </div>
-    </header>
-
-    <div class="max-w-2xl mx-auto -mt-16 relative"> 
-        <div class="bg-white p-8 rounded-lg shadow-xl border-t-4 border-[#C58A4A]">
-            
-            <div class="text-center mb-8">
-                <img src="logo.png" alt="Logo Jabixhûs" class="w-40 mx-auto -mt-4 mb-4">
-                <p class="text-gray-600 text-lg">
-                    Stap binnen in het Jabixhûs, een voormalige school omgetoverd tot een sfeervol en levendig stadsklooster. Gasten noemen het een "pareltje waar je je direct thuis voelt". Een plek waar de deur openstaat voor reizigers, fietsers en pelgrims op zoek naar een warm en onvergetelijk verblijf.
-                </p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center my-10 py-6 border-t border-b border-gray-200">
-                <div>
-                    <div class="flex justify-center items-center h-12 w-12 rounded-full bg-[#C58A4A] text-white mx-auto">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 016.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z" /></svg>
-                    </div>
-                    <h3 class="font-semibold mt-4">Voel je Thuis</h3>
-                    <p class="text-sm text-gray-500 mt-1">Een warm, gastvrij onthaal en een compleet uitgeruste keuken waar je andere reizigers ontmoet.</p>
-                </div>
-                <div>
-                    <div class="flex justify-center items-center h-12 w-12 rounded-full bg-[#C58A4A] text-white mx-auto">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-                    </div>
-                    <h3 class="font-semibold mt-4">Vind Jouw Ritme</h3>
-                    <p class="text-sm text-gray-500 mt-1">Een rustige kamer met een comfortabel bed en moderne, eigen badkamer op loopafstand van de stad.</p>
-                </div>
-                <div>
-                    <div class="flex justify-center items-center h-12 w-12 rounded-full bg-[#C58A4A] text-white mx-auto">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L15.232 5.232z" /></svg>
-                    </div>
-                    <h3 class="font-semibold mt-4">Een Unieke Plek</h3>
-                    <p class="text-sm text-gray-500 mt-1">Verblijf in een prachtig, oud schoolgebouw vol karakter, met een gebedsruimte en een creatieve sfeer.</p>
-                </div>
-            </div>
-
-            <main>
-                <div class="space-y-4">
-                    <a href="vrienden-aanvraag.html" class="block w-full text-center bg-[#C58A4A] text-white font-semibold py-3 px-4 rounded-md hover:bg-[#b07b41] transition-colors duration-300">
-                        Overnachting Aanvragen
-                        <span class="block text-sm font-normal opacity-90">(voor 1-2 personen)</span>
-                    </a>
-                    <div class="relative">
-                         <a href="#" class="block w-full text-center bg-gray-300 text-gray-500 font-semibold py-3 px-4 rounded-md cursor-not-allowed">
-                            Groepsruimte of Evenement Aanvragen
-                            <span class="block text-sm font-normal opacity-90">(groepen, workshops, etc.)</span>
-                        </a>
-                        <span class="absolute top-1/2 right-4 -translate-y-1/2 bg-gray-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                            BINNENKORT
-                        </span>
-                    </div>
-                </div>
-            </main>
-
-            <div class="mt-12 pt-8 border-t border-gray-200">
-                <img src="schets-jabixhus.png" alt="Schets van het Jabixhûs" class="mx-auto w-full max-w-md rounded-lg opacity-90">
-            </div>
-        </div>
+<body>
+    <div class="container">
+        <img src="logo.png" alt="Logo Jabixhûs">
+        <h1>Binnenkort beschikbaar</h1>
+        <p>De website voor het Jabixhûs is momenteel in onderhoud. We zijn snel weer online!</p>
     </div>
-
-    <footer class="text-center mt-8 mb-4">
-        <p class="text-sm text-gray-500">&copy; 2025 Jabixhûs Leeuwarden</p>
-    </footer>
-
 </body>
 </html>
